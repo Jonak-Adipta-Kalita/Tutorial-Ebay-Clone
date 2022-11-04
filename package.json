@@ -6,6 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@thirdweb-dev/react": "2.9.6",
     "@thirdweb-dev/sdk": "^3.4.2",
     "ethers": "^5.7.2",
     "next": "latest",
