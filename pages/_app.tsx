@@ -6,7 +6,7 @@ import network from "../utils/network";
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ThirdwebProvider desiredChainId={network}>
-      <Component {...pageProps} />;
+      <Component {...pageProps} />
     </ThirdwebProvider>
   );
 }

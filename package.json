@@ -6,7 +6,8 @@
     "start": "next start"
   },
   "dependencies": {
-    "@thirdweb-dev/react": "2.9.6",
+    "@heroicons/react": "^2.0.13",
+    "@thirdweb-dev/react": "^3.5.1",
     "@thirdweb-dev/sdk": "^3.4.2",
     "ethers": "^5.7.2",
     "next": "latest",
