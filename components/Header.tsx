@@ -16,7 +16,7 @@ const Header = ({}: Props) => {
   const address = useAddress();
 
   return (
-    <div className="">
+    <div className="max-w-6xl mx-auto p-2">
       <nav className="flex justify-between">
         <div className="flex items-center space-x-2 text-sm">
           <button
@@ -41,6 +41,7 @@ const Header = ({}: Props) => {
           <ShoppingCartIcon className="h-6 w-6 cursor-pointer" />
         </div>
       </nav>
+      <hr className="mt-2" />
     </div>
   );
 };
