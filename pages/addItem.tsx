@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 
 type Props = {};
 
-const AddItem = (props: Props) => {
+const AddItem = ({}: Props) => {
   const { contract } = useContract(
     process.env.NEXT_PUBLIC_COLLECTION_CONTRACT,
     "nft-collection"
