@@ -1,20 +1,55 @@
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import { MediaRenderer, useContract, useListing } from "@thirdweb-dev/react";
 import { ListingType } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 
 type Props = { id: string };
 
 const Listing = ({ id: listingId }: Props) => {
+  const [minimumNextBid, setMinimumNextBid] = useState<{
+    symbol: string;
+    value: BigNumber;
+    name: string;
+    decimals: number;
+    displayValue: string;
+  }>();
+
   const { contract } = useContract(
     process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT,
     "marketplace"
   );
 
   const { data: listing, error, isLoading } = useListing(contract, listingId);
+
+  const formatPlaceholder = () => {
+    if (isLoading || !listing) return "Loading...";
+
+    if (listing.type === ListingType.Direct) {
+      return "Enter offer Amout";
+    } else if (listing.type === ListingType.Auction) {
+      return Number(minimumNextBid?.displayValue) === 0
+        ? "Enter Bid Amount"
+        : `${minimumNextBid?.displayValue} ${minimumNextBid?.symbol}`;
+    }
+  };
+
+  const fetchMinNextBid = async () => {
+    if (!listingId || !contract) return;
+
+    setMinimumNextBid(await contract.auction.getMinimumNextBid(listingId));
+  };
+
+  useEffect(() => {
+    if (!listingId || !contract || !listing) return;
+
+    if (listing.type === ListingType.Auction) {
+      fetchMinNextBid();
+    }
+  }, [listing, listingId, contract]);
 
   return (
     <div>
@@ -67,6 +102,32 @@ const Listing = ({ id: listingId }: Props) => {
               </p>
               <button className="col-start-2 mt-2 bg-blue-600 font-bold text-white rounded-full w-44 py-4 px-10">
                 Buy Now
+              </button>
+            </div>
+            <div className="grid grid-cols-2 space-y-2 items-center justify-end">
+              <hr className="col-span-2" />
+              <p className="col-span-2 font-bold">
+                {listing.type === ListingType.Direct
+                  ? "Make an Offer"
+                  : "Bid on this Auction"}
+              </p>
+              {listing.type === ListingType.Auction && (
+                <>
+                  <p>Current Minimum Bid: </p>
+                  <p>
+                    {minimumNextBid?.displayValue} {minimumNextBid?.symbol}
+                  </p>
+                  <p>Time Remaining: </p>
+                  {/* <p>{listing.endTimeInEpochSeconds}</p> */}
+                </>
+              )}
+              <input
+                className="border p-2 rounded-lg mr-5 outline-none"
+                type="text"
+                placeholder={formatPlaceholder()}
+              />
+              <button className="bg-red-600 font-bold text-white rounded-full w-44 py-4 px-10">
+                {listing.type === ListingType.Direct ? "Offer" : "Bid"}
               </button>
             </div>
           </section>
