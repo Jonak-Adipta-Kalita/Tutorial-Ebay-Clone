@@ -52,7 +52,7 @@ const Listing = ({ id: listingId }: Props) => {
     } else if (listing.type === ListingType.Auction) {
       return Number(minimumNextBid?.displayValue) === 0
         ? "Enter Bid Amount"
-        : `${minimumNextBid?.displayValue} ${minimumNextBid?.symbol}`;
+        : `${minimumNextBid?.displayValue} ${minimumNextBid?.symbol} or more`;
     }
   };
 
