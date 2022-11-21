@@ -6,6 +6,7 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
+import Countdown from "react-countdown";
 
 type Props = { id: string };
 
@@ -118,7 +119,11 @@ const Listing = ({ id: listingId }: Props) => {
                     {minimumNextBid?.displayValue} {minimumNextBid?.symbol}
                   </p>
                   <p>Time Remaining: </p>
-                  {/* <p>{listing.endTimeInEpochSeconds}</p> */}
+                  <Countdown
+                    date={
+                      Number(listing.endTimeInEpochSeconds.toString()) * 1000
+                    }
+                  />
                 </>
               )}
               <input
