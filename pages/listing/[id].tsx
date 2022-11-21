@@ -10,9 +10,10 @@ import {
   useMakeOffer,
   useBuyNow,
   useAddress,
+  useAcceptDirectListingOffer,
 } from "@thirdweb-dev/react";
-import { ListingType } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
+import { ListingType, NATIVE_TOKENS } from "@thirdweb-dev/sdk";
+import { BigNumber, ethers } from "ethers";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
@@ -38,6 +39,10 @@ const Listing = ({ id: listingId }: Props) => {
     "marketplace"
   );
   const { mutate: buyNow } = useBuyNow(contract);
+  const { mutate: makeOffer } = useMakeOffer(contract);
+  const offers = useOffers(contract, listingId);
+  const { mutate: makeBid } = useMakeBid(contract);
+  const { mutate: acceptOffer } = useAcceptDirectListingOffer(contract);
   const networkMismatch = useNetworkMismatch();
   const [, switchNetwork] = useNetwork();
   const router = useRouter();
@@ -92,7 +97,38 @@ const Listing = ({ id: listingId }: Props) => {
       }
 
       if (listing?.type === ListingType.Direct) {
+        if (
+          listing.buyoutPrice.toString() ===
+          ethers.utils.parseEther(bidAmount).toString()
+        ) {
+          buyNFT();
+          return;
+        }
+        await makeOffer(
+          { listingId, quantity: 1, pricePerToken: bidAmount },
+          {
+            onSuccess(data, variables, context) {
+              alert("Offer made successfully!!");
+              setBidAmount("");
+            },
+            onError(error, variables, context) {
+              alert("Error: Offer could not be made!!");
+            },
+          }
+        );
       } else if (listing?.type === ListingType.Auction) {
+        await makeBid(
+          { listingId, bid: bidAmount },
+          {
+            onSuccess(data, variables, context) {
+              alert("Bid made successfully!!");
+              setBidAmount("");
+            },
+            onError(error, variables, context) {
+              alert("Error: Bid could not be made!!");
+            },
+          }
+        );
       }
     } catch (err) {
       alert(err);
@@ -163,6 +199,59 @@ const Listing = ({ id: listingId }: Props) => {
                 Buy Now
               </button>
             </div>
+            {listing.type === ListingType.Direct && offers && (
+              <div className="grid grid-cols-2 gap-y-2">
+                <p className="font-bold">Offers: </p>
+                <p className="font-bold">{offers?.data?.length}</p>
+                {offers?.data?.map((offer) => (
+                  <>
+                    <p
+                      key={
+                        offer.listingId +
+                        offer.offeror +
+                        offer.totalOfferAmount.toString()
+                      }
+                      className="flex items-center ml-5 text-sm italic"
+                    >
+                      <UserCircleIcon className="h-3 mr-2" />
+                      {offer.offeror.slice(0, 5) +
+                        "..." +
+                        offer.offeror.slice(-5)}
+                    </p>
+                    <div className="">
+                      <p className="text-sm italic">
+                        {ethers.utils.formatEther(offer.totalOfferAmount)}{" "}
+                        {NATIVE_TOKENS[network].symbol}
+                      </p>
+                      {listing.sellerAddress === address && (
+                        <button
+                          className="p-2 w-32 bg-red-500/50 rounded-lg font-bold text-xs cursor-pointer"
+                          onClick={() =>
+                            acceptOffer(
+                              {
+                                addressOfOfferor: offer.offeror,
+                                listingId,
+                              },
+                              {
+                                onSuccess(data, variables, context) {
+                                  alert("Offer accepted successfull!!");
+                                  router.replace("/");
+                                },
+                                onError(error, variables, context) {
+                                  alert("Offer could not be accepted!!");
+                                },
+                              }
+                            )
+                          }
+                        >
+                          Accept Offer
+                        </button>
+                      )}
+                    </div>
+                  </>
+                ))}
+              </div>
+            )}
             <div className="grid grid-cols-2 space-y-2 items-center justify-end">
               <hr className="col-span-2" />
               <p className="col-span-2 font-bold">
